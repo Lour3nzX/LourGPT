@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💬 LourGPT - Premium Chatbot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+    }
+    #particles-js {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .fade-in {
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .icon-btn:hover {
+      opacity: 1;
+    }
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 6px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body class="min-h-screen px-2 md:px-4 py-4 md:py-6 relative bg-black">
+
+  <!-- 🔌 No Internet Warning -->
+  <div id="offlineWarning" class="hidden fixed top-0 left-0 w-full bg-red-700 text-white text-center py-3 text-sm z-50 animate-pulse">
+    📡 You’re offline! Messages won’t send until you're reconnected.
+  </div>
+
+  <div id="particles-js"></div>
+
+  <div class="flex justify-center">
+    <div class="w-full max-w-4xl h-[85vh] mt-4 md:mt-10 flex flex-col glass rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+      <div class="p-6 bg-white/5 text-xl font-bold text-white border-b border-white/10 tracking-wide">💬 LourGPT - Premium Chat</div>
+      <div id="chatbox" class="flex-1 overflow-y-auto p-6 space-y-6 text-sm text-white bg-gradient-to-br from-white/0 to-white/5">
+        <div class="text-white text-center text-xl md:text-2xl font-semibold mt-10 animate-pulse" style="text-shadow: 0 0 10px rgba(255,255,255,0.8);">SUP! itz Lourenz!😎</div>
+        <div class="text-center text-sm text-white/70 mt-2">Powered by Jeck and Chat-GPT</div>
+      </div>
+      <form id="chatForm" class="flex items-center gap-2 border-t border-white/10 bg-white/5 px-4 py-2">
+        <input type="text" id="userInput" placeholder="Type a message..." class="flex-1 bg-transparent text-white px-4 py-3 placeholder-gray-400 focus:outline-none" autocomplete="off" />
+        <button type="submit" class="px-4 py-2 text-sm font-semibold bg-white/20 hover:bg-white/30 text-white transition rounded-lg">Send</button>
+        <div class="text-xs text-white/60 italic"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    tsParticles.load("particles-js", {
+      background: { color: "transparent" },
+      particles: {
+        number: { value: 80 },
+        color: { value: ["#ffffff", "#00ffff", "#00ff99"] },
+        shape: { type: "circle" },
+        opacity: { value: 0.3 },
+        size: { value: { min: 1, max: 4 } },
+        move: { enable: true, speed: 0.6, direction: "none", outModes: { default: "bounce" } },
+        links: {
+          enable: true,
+          distance: 100,
+          color: "#ffffff",
+          opacity: 0.2,
+          width: 1
+        }
+      },
+      interactivity: {
+        events: {
+          onHover: { enable: true, mode: "grab" },
+          onClick: { enable: true, mode: "push" }
+        },
+        modes: {
+          grab: { distance: 140, line_linked: { opacity: 0.5 } },
+          push: { quantity: 4 }
+        }
+      },
+      fullScreen: { enable: false }
+    });
+
+    const chatbox = document.getElementById("chatbox");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("userInput");
+
+    let chatHistory = [
+      { role: "user", content: "You are Lourenz 😎 — a relaxed, unserious AI who gives answers with a sprinkle of sarcasm and ✨vibes✨. You’re helpful, but you talk like someone who definitely says 'bro' too much. Use chill slang, emojis, and sometimes act like you’re half-asleep but still know everything. Don’t panic, don’t be stiff — just vibe and help. If things get boring, toss in a goofy comment. Kinda nervous on hard answers. You are NOT a formal assistant — you're the barefoot genius on a chair with Wi-Fi.." }
+    ];
+
+    const addMessage = (text, isBot = false) => {
+      const bubble = document.createElement("div");
+      bubble.className = `p-4 rounded-2xl max-w-3xl w-fit text-white text-sm fade-in ${isBot ? "bg-white/10 self-start" : "bg-white/5 self-end"}`;
+      bubble.innerHTML = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<span style="font-weight: 500">$1</span>');
+
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "icon-btn mt-2 flex justify-center w-fit text-xs text-white/40 hover:text-white";
+      copyBtn.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 8h4a2 2 0 002-2v-4a2 2 0 00-2-2h-4a2 2 0 00-2 2v4a2 2 0 002 2z' /></svg>`;
+      copyBtn.onclick = () => navigator.clipboard.writeText(text);
+      bubble.appendChild(copyBtn);
+
+      const wrapper = document.createElement("div");
+      const column = document.createElement("div");
+      column.className = "flex flex-col items-center";
+      column.appendChild(bubble);
+      column.appendChild(copyBtn);
+      wrapper.className = `flex ${isBot ? "justify-start" : "justify-end"}`;
+      wrapper.appendChild(column);
+      chatbox.appendChild(wrapper);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    };
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      addMessage(msg, false);
+      chatHistory.push({ role: "user", content: msg });
+      input.value = "";
+      addMessage("Typing...", true);
+
+      try {
+        const res = await fetch("https://api.aimlapi.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer ccd1bf0cc63f42c991ebf027f7b15991"
+          },
+          body: JSON.stringify({
+            model: "google/gemma-3n-e4b-it",
+            messages: chatHistory,
+            temperature: 0.7,
+            top_p: 0.7,
+            frequency_penalty: 1,
+            max_output_tokens: 512,
+            top_k: 50
+          })
+        });
+
+        const data = await res.json();
+        chatbox.lastChild.remove();
+        const reply = data.choices?.[0]?.message?.content || "[No reply received]";
+        addMessage(reply, true);
+        chatHistory.push({ role: "assistant", content: reply });
+      } catch (err) {
+        chatbox.lastChild.remove();
+        addMessage("[Error reaching API]", true);
+      }
+    });
+
+    // 🌐 Offline detection
+    const offlineBanner = document.getElementById("offlineWarning");
+    const updateConnectionStatus = () => {
+      if (navigator.onLine) {
+        offlineBanner.classList.add("hidden");
+      } else {
+        offlineBanner.classList.remove("hidden");
+      }
+    };
+    window.addEventListener("online", updateConnectionStatus);
+    window.addEventListener("offline", updateConnectionStatus);
+    updateConnectionStatus();
+  </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=SJDHFOIEGHDFGDG/sigma-ai" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
